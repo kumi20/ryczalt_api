@@ -1,0 +1,14 @@
+<LimitExcept GET POST PUT DELETE>
+    Require all granted
+</LimitExcept>
+
+RewriteEngine On
+RewriteBase /api_ryczalt/
+
+# Wyjątek: nie przekierowuj zapytań skierowanych do /docs
+RewriteRule ^docs(/.*)?$ - [L]
+
+# Przekierowanie wszystkich pozostałych żądań do index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^.*$ index.php [QSA,L]

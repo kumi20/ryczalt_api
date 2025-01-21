@@ -1,0 +1,2572 @@
+openapi: 3.0.0
+info:
+  title: API Ryczalt
+  version: 1.0.0
+  description: API do aplikacji Ryczalt.
+paths:
+  /api_ryczalt/country:
+    get:
+      summary: Pobierz listę krajów.
+      description: >
+        Zwraca listę krajów, które są dostępne dla firmy powiązanej z tokenem lub globalne (bez przypisanego `companyId`).
+      tags:
+        - Countries
+      security:
+        - bearerAuth: []  # Autoryzacja za pomocą tokena
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: >
+            Token autoryzacyjny w formacie `Bearer {token}`.
+      responses:
+        '200':
+          description: Lista krajów.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    countryId:
+                      type: integer
+                      description: Unikalny identyfikator kraju.
+                    name:
+                      type: string
+                      description: Nazwa kraju.
+                    code:
+                      type: string
+                      description: Kod kraju (np. ISO).
+                    isSystem:
+                      type: boolean
+                      description: Wskazuje, czy kraj jest systemowy.
+                    companyId:
+                      type: integer
+                      nullable: true
+                      description: Powiązanie z firmą (NULL oznacza brak powiązania).
+        '400':
+          description: Błąd podczas pobierania danych.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Opis błędu.
+                  details:
+                    type: string
+                    description: Szczegóły błędu.
+        '401':
+          description: Nieautoryzowany dostęp.
+        '500':
+          description: Wewnętrzny błąd serwera.
+  /api_ryczalt/license:
+    get:
+      tags:
+        - Licencje
+      summary: Pobiera informacje o licencji dla firmy
+      description: Zwraca szczegóły aktualnej licencji dla firmy na podstawie companyId z tokenu
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sukces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  licenseNumber:
+                    type: string
+                    example: "LIC-2024-XK5792"
+                    description: Numer licencji
+                  dataStart:
+                    type: string
+                    format: date
+                    example: "2024-01-01"
+                    description: Data rozpoczęcia licencji
+                  dataEnd:
+                    type: string
+                    format: date
+                    example: "2024-12-31"
+                    description: Data zakończenia licencji
+                  isActive:
+                    type: boolean
+                    example: true
+                    description: Status aktywności licencji
+        '400':
+          description: Błąd
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nie znaleziono licencji dla tej firmy"
+                    description: Opis błędu
+
+  /api_ryczalt/customers/gus:
+    get:
+      summary: Pobierz dane firmy na podstawie NIP
+      tags:
+        - Kontrahenci
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: nip
+          in: query
+          required: true
+          description: Numer NIP firmy do wyszukiwania
+          schema:
+            type: string
+            example: "1234567890"
+      responses:
+        '200':
+          description: Dane firmy zostały pomyślnie pobrane
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customerName:
+                    type: string
+                    example: "Firma A"
+                  customerVat:
+                    type: string
+                    example: "PL1234567890"
+                  street:
+                    type: string
+                    example: "Główna 1"
+                  city:
+                    type: string
+                    example: "Warszawa"
+                  postalCode:
+                    type: string
+                    example: "00-001"
+                  countryId:
+                    type: nuber
+                    example: 21
+                  email:
+                    type: string
+                    example: "contact@firma-a.com"
+                  phone:
+                    type: string
+                    example: "+48123456789"
+        '400':
+          description: Błąd walidacji lub brak danych dla podanego NIP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nieprawidłowy format NIP"
+                  code:
+                    type: integer
+                    example: 400
+
+  /api_ryczalt/customers:
+    get:
+      tags:
+        - Kontrahenci
+      summary: Pobierz listę kontrahentów
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: skip
+          in: query
+          description: Liczba elementów do pominięcia w liście kontrahentów (np. dla paginacji)
+          required: false
+          schema:
+            type: integer
+            example: 0
+        - name: take
+          in: query
+          description: Liczba elementów do pobrania (np. dla paginacji)
+          required: false
+          schema:
+            type: integer
+            example: 50
+        - name: customerName
+          in: query
+          description: Filtr na podstawie nazwy kontrahenta (częściowe dopasowanie)
+          required: false
+          schema:
+            type: string
+            example: "Firma A"
+        - name: customerVat
+          in: query
+          description: Filtr na podstawie NIP (częściowe dopasowanie)
+          required: false
+          schema:
+            type: string
+            example: "1112223344"
+        - name: city
+          in: query
+          description: Filtr na podstawie miasta (częściowe dopasowanie)
+          required: false
+          schema:
+            type: string
+            example: "Warszawa"
+        - name: orderBy
+          in: query
+          description: Kolumna do sortowania wyników
+          required: false
+          schema:
+            type: string
+            example: "customerName"
+        - name: order
+          in: query
+          description: Kierunek sortowania (ASC lub DESC)
+          required: false
+          schema:
+            type: string
+            enum:
+              - ASC
+              - DESC
+            example: "ASC"
+        - name: isSupplier
+          in: query
+          description: Filtruj dostawców (1 = tak, 0 = nie)
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+            example: 1
+        - name: isRecipient
+          in: query
+          description: Filtruj odbiorców (1 = tak, 0 = nie)
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+            example: 0
+        - name: isOffice
+          in: query
+          description: Filtruj biura (1 = tak, 0 = nie)
+          required: false
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+            example: 1
+      responses:
+        '200':
+          description: Lista kontrahentów
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    customerId:
+                      type: integer
+                      example: 1
+                    customerName:
+                      type: string
+                      example: "Firma A"
+                    customerVat:
+                      type: string
+                      example: "PL1234567890"
+                    street:
+                      type: string
+                      example: "Main Street 1"
+                    city:
+                      type: string
+                      example: "Warszawa"
+                    postalCode:
+                      type: string
+                      example: "00-001"
+                    countryId:
+                      type: number
+                      example: 21
+                    accountNumber:
+                      type: string
+                      example: "123456789"
+                    isSupplier:
+                      type: integer
+                      example: 1
+                    isRecipient:
+                      type: integer
+                      example: 0
+                    isOffice:
+                      type: integer
+                      example: 1
+                    addressDetails:
+                      type: object
+                      description: Szczegóły dodatkowego adresu kontrahenta
+                      properties:
+                        name:
+                          type: string
+                          example: "Magazyn Centralny"
+                        street:
+                          type: string
+                          example: "ul. Łąkowa 15"
+                        city:
+                          type: string
+                          example: "Kraków"
+                        postalCode:
+                          type: string
+                          example: "30-001"
+                        countryId:
+                          type: number
+                          example: 21
+                    contactDetails:
+                      type: object
+                      description: Szczegóły kontaktowe kontrahenta
+                      properties:
+                        contactPerson:
+                          type: string
+                          example: "Jan Kowalski"
+                        email:
+                          type: string
+                          example: "kontakt@firmaa.pl"
+                        phone:
+                          type: string
+                          example: "+48 600 700 800"
+                        website:
+                          type: string
+                          example: "https://firmaa.pl"
+                        fax:
+                          type: string
+                          example: "+48 22 123 45 67"
+    post:
+      tags:
+        - Kontrahenci
+      summary: Dodaje nowego kontrahenta
+      description: Dodaje nowego kontrahenta wraz z jego szczegółami adresowymi i kontaktowymi
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerName
+                - customerVat
+                - street
+                - city
+                - postalCode
+                - country
+                - accountNumber
+              properties:
+                customerName:
+                  type: string
+                  example: "Firma A"
+                customerVat:
+                  type: string
+                  example: "PL1234567890"
+                street:
+                  type: string
+                  example: "Main Street 1"
+                city:
+                  type: string
+                  example: "Warszawa"
+                postalCode:
+                  type: string
+                  example: "00-001"
+                countryId:
+                  type: number
+                  example: 21
+                accountNumber:
+                  type: string
+                  example: "123456789"
+                addressDetails:
+                  type: object
+                  description: Szczegóły dodatkowego adresu kontrahenta
+                  properties:
+                    name:
+                      type: string
+                      example: "Magazyn Centralny"
+                    street:
+                      type: string
+                      example: "ul. Łąkowa 15"
+                    city:
+                      type: string
+                      example: "Kraków"
+                    postalCode:
+                      type: string
+                      example: "30-001"
+                    countryId:
+                      type: number
+                      example: 21
+                contactDetails:
+                  type: object
+                  description: Szczegóły kontaktowe kontrahenta
+                  properties:
+                    contactPerson:
+                      type: string
+                      example: "Jan Kowalski"
+                    email:
+                      type: string
+                      example: "kontakt@firmaa.pl"
+                    phone:
+                      type: string
+                      example: "+48 600 700 800"
+                    website:
+                      type: string
+                      example: "https://firmaa.pl"
+                    fax:
+                      type: string
+                      example: "+48 22 123 45 67"      
+      responses:
+        '200':
+          description: Kontrahent został pomyślnie dodany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  customerId:
+                    type: integer
+                    example: 123
+                    description: ID dodanego kontrahenta
+        '400':
+          description: Błąd walidacji lub dodawania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nieprawidłowe dane klienta"
+    put:
+      tags:
+        - Kontrahenci
+      summary: Aktualizuje dane kontrahenta
+      description: Aktualizuje kontrahenta wraz z jego szczegółami adresowymi i kontaktowymi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: customerId kontrahenta do aktualizacji.
+          schema:
+            type: integer
+            example: 123
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - customerName
+                - customerVat
+                - street
+                - city
+                - postalCode
+                - countryId
+                - accountNumber
+              properties:
+                customerName:
+                  type: string
+                  example: "Firma A"
+                customerVat:
+                  type: string
+                  example: "PL1234567890"
+                street:
+                  type: string
+                  example: "Main Street 1"
+                city:
+                  type: string
+                  example: "Warszawa"
+                postalCode:
+                  type: string
+                  example: "00-001"
+                countryId:
+                  type: number
+                  example: 21
+                accountNumber:
+                  type: string
+                  example: "123456789"
+                addressDetails:
+                  type: object
+                  description: Szczegóły dodatkowego adresu kontrahenta
+                  properties:
+                    name:
+                      type: string
+                      example: "Magazyn Centralny"
+                    street:
+                      type: string
+                      example: "ul. Łąkowa 15"
+                    city:
+                      type: string
+                      example: "Kraków"
+                    postalCode:
+                      type: string
+                      example: "30-001"
+                    countryId:
+                      type: number
+                      example: 21
+                contactDetails:
+                  type: object
+                  description: Szczegóły kontaktowe kontrahenta
+                  properties:
+                    contactPerson:
+                      type: string
+                      example: "Jan Kowalski"
+                    email:
+                      type: string
+                      example: "kontakt@firmaa.pl"
+                    phone:
+                      type: string
+                      example: "+48 600 700 800"
+                    website:
+                      type: string
+                      example: "https://firmaa.pl"
+                    fax:
+                      type: string
+                      example: "+48 22 123 45 67"    
+      responses:
+        '200':
+          description: Kontrahent został pomyślnie dodany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  customerId:
+                    type: integer
+                    example: 123
+                    description: ID dodanego kontrahenta
+        '400':
+          description: Błąd walidacji lub dodawania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nieprawidłowe dane klienta"
+    delete:
+      tags:
+        - Kontrahenci
+      summary: Usuwa kontrahenta
+      description: Deletes a customer record and its associated address and contact details from the database, based on the provided customer ID.
+      operationId: deleteCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: customerId kontrahenta do usunięcia.
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: Customer successfully deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    example: "Usunięto kontrahenta"
+        '400':
+          description: Invalid request or customer not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing or invalid 'id' parameter"
+                  details:
+                    type: string
+                    example: "nie znaleziono kontrahenta"
+      security:
+        - BearerAuth: []
+  /api_ryczalt/login:
+    post:
+      tags:
+        - Autoryzacja
+      summary: Logowanie użytkownika i generowanie tokenu JWT
+      description: Zalogowanie użytkownika przy pomocy loginu i hasła oraz wygenerowanie tokenu JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                  example: user123
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Zalogowano pomyślnie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR...
+        '400':
+          description: Błędne dane logowania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Błędne dane logowania
+  /api_ryczalt/document-types:
+    get:
+      tags:
+        - Typy dokumentów
+      summary: Pobiera listę typów dokumentów
+      description: Zwraca listę wszystkich dostępnych typów dokumentów dla zalogowanej firmy
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Pomyślnie pobrano listę typów dokumentów
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Identyfikator typu dokumentu
+                      example: 1
+                    name:
+                      type: string
+                      description: Nazwa typu dokumentu
+                      example: "Faktura VAT"
+                    signature:
+                      type: string
+                      description: Sygnatura/prefiks typu dokumentu
+                      example: "FV"
+        '400':
+          description: Błąd podczas pobierania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Błąd pobierania danych"
+                  details:
+                    type: string
+                    example: "Szczegóły błędu"
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Brak autoryzacji"
+
+  /api_ryczalt/statusMonth:
+    get:
+      tags:
+        - Zamykanie miesiąca
+      summary: Sprawdza status zamknięcia miesiąca
+      description: Sprawdza czy dany miesiąc jest zamknięty dla firmy
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: Numer miesiąca (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 3
+        - name: year
+          in: query
+          required: true
+          description: Rok
+          schema:
+            type: integer
+            example: 2024
+      responses:
+        '200':
+          description: Status zamknięcia miesiąca
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isClosed:
+                    type: boolean
+                    example: true
+                    description: Status zamknięcia miesiąca (true - zamknięty, false - otwarty)
+        '400':
+          description: Błąd walidacji parametrów
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nieprawidłowy numer miesiąca (1-12)"
+  /api_ryczalt/close-month:
+    post:
+      tags:
+        - Zamykanie miesiąca
+      summary: Zamyka wybrany miesiąc
+      description: Zamyka wybrany miesiąc dla firmy
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - month
+                - year
+              properties:
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 3
+                  description: Numer miesiąca (1-12)
+                year:
+                  type: integer
+                  example: 2024
+                  description: Rok
+      responses:
+        '200':
+          description: Miesiąc został pomyślnie zamknięty
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  details:
+                    type: string
+                    example: "Miesiąc został zamknięty"
+        '400':
+          description: Błąd podczas zamykania miesiąca
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nieprawidłowy numer miesiąca (1-12)"
+                  details:
+                    type: string
+                    example: "Ten miesiąc jest już zamknięty"
+
+  /api_ryczalt/open-month:
+    post:
+      tags:
+        - Zamykanie miesiąca
+      summary: Usuwa zamknięcie miesiąca
+      description: Otwiera wcześniej zamknięty miesiąc dla firmy
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - month
+                - year
+              properties:
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 3
+                  description: Numer miesiąca (1-12)
+                year:
+                  type: integer
+                  example: 2024
+                  description: Rok
+      responses:
+        '200':
+          description: Zamknięcie miesiąca zostało pomyślnie usunięte
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  details:
+                    type: string
+                    example: "Zamknięcie miesiąca zostało usunięte"
+        '400':
+          description: Błąd podczas usuwania zamknięcia miesiąca
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Nieprawidłowy numer miesiąca (1-12)"
+                  details:
+                    type: string
+                    example: "Ten miesiąc nie jest zamknięty"
+
+  /api_ryczalt/flat-rate:
+    get:
+      tags:
+        - Ryczałt
+      summary: Pobiera listę wpisów ryczałtu
+      description: Zwraca listę wpisów ryczałtu dla danego miesiąca i roku
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: Miesiąc (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: true
+          description: Rok
+          schema:
+            type: integer
+        - name: skip
+          in: query
+          description: Liczba rekordów do pominięcia (paginacja)
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Liczba rekordów do pobrania (paginacja)
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lista wpisów ryczałtu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ryczaltId:
+                          type: integer
+                        lp:
+                          type: integer
+                        dateOfEntry:
+                          type: string
+                          format: date
+                        dateOfReceipt:
+                          type: string
+                          format: date
+                        documentNumber:
+                          type: string
+                        isClose:
+                          type: boolean
+                        rate3:
+                          type: number
+                        rate5_5:
+                          type: number
+                        rate8_5:
+                          type: number
+                        rate10:
+                          type: number
+                        rate12:
+                          type: number
+                        rate12_5:
+                          type: number
+                        rate14:
+                          type: number
+                        rate15:
+                          type: number
+                        rate17:
+                          type: number
+                        remarks:
+                          type: string
+                        vatRegisterId:
+                          type: integer
+                        totalRevenue:
+                          type: number
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+
+    post:
+      tags:
+        - Ryczałt
+      summary: Dodaje nowy wpis ryczałtu
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dateOfEntry
+                - dateOfReceipt
+                - documentNumber
+                - isClose
+              properties:
+                dateOfEntry:
+                  type: string
+                  format: date
+                dateOfReceipt:
+                  type: string
+                  format: date
+                documentNumber:
+                  type: string
+                isClose:
+                  type: boolean
+                rate3:
+                  type: number
+                rate5_5:
+                  type: number
+                rate8_5:
+                  type: number
+                rate10:
+                  type: number
+                rate12:
+                  type: number
+                rate12_5:
+                  type: number
+                rate14:
+                  type: number
+                rate15:
+                  type: number
+                rate17:
+                  type: number
+                remarks:
+                  type: string
+                vatRegisterId:
+                  type: integer
+      responses:
+        '200':
+          description: Wpis został dodany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  details:
+                    type: string
+                  flateRateId:
+                    type: integer
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+
+  /api_ryczalt/flat-rate/{id}:
+    put:
+      tags:
+        - Ryczałt
+      summary: Aktualizuje wpis ryczałtu
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - dateOfEntry
+                - dateOfReceipt
+                - documentNumber
+              properties:
+                dateOfEntry:
+                  type: string
+                  format: date
+                dateOfReceipt:
+                  type: string
+                  format: date
+                documentNumber:
+                  type: string
+                rate3:
+                  type: number
+                rate5_5:
+                  type: number
+                rate8_5:
+                  type: number
+                rate10:
+                  type: number
+                rate12:
+                  type: number
+                rate12_5:
+                  type: number
+                rate14:
+                  type: number
+                rate15:
+                  type: number
+                rate17:
+                  type: number
+                remarks:
+                  type: string
+                vatRegisterId:
+                  type: integer
+      responses:
+        '200':
+          description: Wpis został zaktualizowany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  details:
+                    type: string
+                  flateRateId:
+                    type: integer
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+        '404':
+          description: Nie znaleziono wpisu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+
+    delete:
+      tags:
+        - Ryczałt
+      summary: Usuwa wpis ryczałtu
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID wpisu ryczałtu
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Wpis został usunięty
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  details:
+                    type: string
+        '400':
+          description: Błąd przetwarzania lub wpis jest zamknięty
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+        '404':
+          description: Nie znaleziono wpisu
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+
+  /api_ryczalt/flat-rate/summary:
+    get:
+      tags:
+        - Ryczałt
+      summary: Pobiera podsumowanie stawek dla danego miesiąca
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: Miesiąc (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: true
+          description: Rok
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Podsumowanie stawek
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sum_rate17:
+                    type: number
+                  sum_rate15:
+                    type: number
+                  sum_rate14:
+                    type: number
+                  sum_rate12_5:
+                    type: number
+                  sum_rate12:
+                    type: number
+                  sum_rate10:
+                    type: number
+                  sum_rate8_5:
+                    type: number
+                  sum_rate5_5:
+                    type: number
+                  sum_rate3:
+                    type: number
+                  total_sum:
+                    type: number
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+
+  /api_ryczalt/registeVat/sell:
+    get:
+      tags:
+        - Rejestr VAT
+      summary: Pobiera wpisy z rejestru VAT
+      description: Zwraca listę wpisów z rejestru VAT dla określonego miesiąca i roku z możliwością paginacji
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Miesiąc, dla którego mają zostać pobrane wpisy (1-12)
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+          description: Rok, dla którego mają zostać pobrane wpisy
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Liczba rekordów do pominięcia (do paginacji)
+        - name: take
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+          description: Liczba rekordów do pobrania (do paginacji)
+      responses:
+        '200':
+          description: Pomyślnie pobrano dane
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vatRegisterId:
+                          type: integer
+                          description: Unikalny identyfikator wpisu
+                        documentTypeId:
+                          type: integer
+                          description: ID typu dokumentu
+                        documentDate:
+                          type: string
+                          format: date
+                          description: Data dokumentu
+                        taxLiabilityDate:
+                          type: string
+                          format: date
+                          description: Data obowiązku podatkowego
+                        dateOfSell:
+                          type: string
+                          format: date
+                          description: Data sprzedaży
+                        documentNumber:
+                          type: string
+                          description: Numer dokumentu
+                        customerId:
+                          type: integer
+                          description: ID klienta
+                        customerName:
+                          type: string
+                          description: Nazwa klienta
+                        rate23Gross:
+                          type: number
+                          description: Kwota brutto dla stawki 23%
+                        rate8Gross:
+                          type: number
+                          description: Kwota brutto dla stawki 8%
+                        rate5Gross:
+                          type: number
+                          description: Kwota brutto dla stawki 5%
+                        rate0:
+                          type: number
+                          description: Kwota netto dla stawki 0%
+                        export0:
+                          type: number
+                          description: Kwota eksportu
+                        wdt0:
+                          type: number
+                          description: Kwota WDT
+                        wsu:
+                          type: number
+                          description: Kwota WSU
+                        exemptSales:
+                          type: number
+                          description: Sprzedaż zwolniona
+                        reverseCharge:
+                          type: number
+                          description: Odwrotne obciążenie
+                        isDelivery:
+                          type: boolean
+                          description: Czy dostawa
+                        isServices:
+                          type: boolean
+                          description: Czy usługa
+                        isCustomerPayer:
+                          type: boolean
+                          description: Czy klient jest płatnikiem
+                        isThreeSided:
+                          type: boolean
+                          description: Czy transakcja trójstronna
+                        isClosed:
+                          type: boolean
+                          description: Czy wpis jest zamknięty
+                        grossSum:
+                          type: number
+                          description: Suma brutto
+                        vatSum:
+                          type: number
+                          description: Suma VAT
+        '400':
+          description: Błędne żądanie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Rejestr VAT
+      summary: Dodaje nowy wpis do rejestru VAT
+      description: Tworzy nowy wpis w rejestrze VAT sprzedaży wraz z opcjonalnym powiązaniem z ryczałtem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentTypeId
+                - documentDate
+                - taxLiabilityDate
+                - dateOfSell
+                - documentNumber
+                - customerId
+              properties:
+                documentTypeId:
+                  type: integer
+                  description: ID typu dokumentu
+                documentDate:
+                  type: string
+                  format: date
+                  description: Data dokumentu
+                taxLiabilityDate:
+                  type: string
+                  format: date
+                  description: Data obowiązku podatkowego
+                dateOfSell:
+                  type: string
+                  format: date
+                  description: Data sprzedaży
+                documentNumber:
+                  type: string
+                  description: Numer dokumentu
+                customerId:
+                  type: integer
+                  description: ID klienta
+                rate23Net:
+                  type: number
+                  description: Kwota netto dla stawki 23%
+                  default: 0
+                rate23Vat:
+                  type: number
+                  description: Kwota VAT dla stawki 23%
+                  default: 0
+                rate23Gross:
+                  type: number
+                  description: Kwota brutto dla stawki 23%
+                  default: 0
+                rate8Net:
+                  type: number
+                  description: Kwota netto dla stawki 8%
+                  default: 0
+                rate8Vat:
+                  type: number
+                  description: Kwota VAT dla stawki 8%
+                  default: 0
+                rate8Gross:
+                  type: number
+                  description: Kwota brutto dla stawki 8%
+                  default: 0
+                rate5Net:
+                  type: number
+                  description: Kwota netto dla stawki 5%
+                  default: 0
+                rate5Vat:
+                  type: number
+                  description: Kwota VAT dla stawki 5%
+                  default: 0
+                rate5Gross:
+                  type: number
+                  description: Kwota brutto dla stawki 5%
+                  default: 0
+                rate0:
+                  type: number
+                  description: Kwota netto dla stawki 0%
+                  default: 0
+                export0:
+                  type: number
+                  description: Kwota eksportu
+                  default: 0
+                wdt0:
+                  type: number
+                  description: Kwota WDT
+                  default: 0
+                wsu:
+                  type: number
+                  description: Kwota WSU
+                  default: 0
+                exemptSales:
+                  type: number
+                  description: Sprzedaż zwolniona
+                  default: 0
+                reverseCharge:
+                  type: number
+                  description: Odwrotne obciążenie
+                  default: 0
+                isDelivery:
+                  type: boolean
+                  description: Czy dostawa
+                  default: false
+                isServices:
+                  type: boolean
+                  description: Czy usługa
+                  default: false
+                isCustomerPayer:
+                  type: boolean
+                  description: Czy klient jest płatnikiem
+                  default: false
+                isThreeSided:
+                  type: boolean
+                  description: Czy transakcja trójstronna
+                  default: false
+                isClosed:
+                  type: boolean
+                  description: Czy wpis jest zamknięty
+                  default: false
+                ryczaltId:
+                  type: integer
+                  description: ID powiązanego wpisu ryczałtu (opcjonalne)
+                  nullable: true
+      responses:
+        '200':
+          description: Pomyślnie dodano wpis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                    example: true
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                    example: "Dodano wpis do rejestru VAT"
+                  vatRegisterId:
+                    type: integer
+                    description: ID utworzonego wpisu
+        '400':
+          description: Błąd walidacji lub wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas dodawania wpisu"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Ten miesiąc jest zamknięty"
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - Rejestr VAT
+      summary: Aktualizuje wpis w rejestrze VAT
+      description: Aktualizuje istniejący wpis w rejestrze VAT sprzedaży wraz z opcjonalnym powiązaniem z ryczałtem
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID wpisu do aktualizacji
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentTypeId
+                - documentDate
+                - taxLiabilityDate
+                - dateOfSell
+                - documentNumber
+                - customerId
+              properties:
+                documentTypeId:
+                  type: integer
+                  description: ID typu dokumentu
+                documentDate:
+                  type: string
+                  format: date
+                  description: Data dokumentu
+                taxLiabilityDate:
+                  type: string
+                  format: date
+                  description: Data obowiązku podatkowego
+                dateOfSell:
+                  type: string
+                  format: date
+                  description: Data sprzedaży
+                documentNumber:
+                  type: string
+                  description: Numer dokumentu
+                customerId:
+                  type: integer
+                  description: ID klienta
+                rate23Net:
+                  type: number
+                  description: Kwota netto dla stawki 23%
+                rate23Vat:
+                  type: number
+                  description: Kwota VAT dla stawki 23%
+                rate23Gross:
+                  type: number
+                  description: Kwota brutto dla stawki 23%
+                rate8Net:
+                  type: number
+                  description: Kwota netto dla stawki 8%
+                rate8Vat:
+                  type: number
+                  description: Kwota VAT dla stawki 8%
+                rate8Gross:
+                  type: number
+                  description: Kwota brutto dla stawki 8%
+                rate5Net:
+                  type: number
+                  description: Kwota netto dla stawki 5%
+                rate5Vat:
+                  type: number
+                  description: Kwota VAT dla stawki 5%
+                rate5Gross:
+                  type: number
+                  description: Kwota brutto dla stawki 5%
+                rate0:
+                  type: number
+                  description: Kwota netto dla stawki 0%
+                export0:
+                  type: number
+                  description: Kwota eksportu
+                wdt0:
+                  type: number
+                  description: Kwota WDT
+                wsu:
+                  type: number
+                  description: Kwota WSU
+                exemptSales:
+                  type: number
+                  description: Sprzedaż zwolniona
+                reverseCharge:
+                  type: number
+                  description: Odwrotne obciążenie
+                isDelivery:
+                  type: boolean
+                  description: Czy dostawa
+                isServices:
+                  type: boolean
+                  description: Czy usługa
+                isCustomerPayer:
+                  type: boolean
+                  description: Czy klient jest płatnikiem
+                isThreeSided:
+                  type: boolean
+                  description: Czy transakcja trójstronna
+                ryczaltId:
+                  type: integer
+                  description: ID powiązanego wpisu ryczałtu (opcjonalne)
+                  nullable: true
+      responses:
+        '200':
+          description: Pomyślnie zaktualizowano wpis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                    example: true
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                    example: "Zaktualizowano wpis w rejestrze VAT"
+                  vatRegisterId:
+                    type: integer
+                    description: ID zaktualizowanego wpisu
+        '400':
+          description: Błąd walidacji lub wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas aktualizacji wpisu"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Ten miesiąc jest zamknięty"
+        '404':
+          description: Nie znaleziono wpisu do aktualizacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Komunikat błędu
+                    example: "Nie znaleziono wpisu do aktualizacji"
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Rejestr VAT
+      summary: Usuwa wpis z rejestru VAT
+      description: Usuwa wskazany wpis z rejestru VAT sprzedaży, jeśli miesiąc nie jest zamknięty
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID wpisu do usunięcia
+      responses:
+        '200':
+          description: Pomyślnie usunięto wpis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                    example: true
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                    example: "Usunięto wpis z rejestru VAT"
+        '400':
+          description: Błąd wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas usuwania wpisu"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Ten miesiąc jest zamknięty"
+        '404':
+          description: Nie znaleziono wpisu do usunięcia
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Komunikat błędu
+                    example: "Nie znaleziono wpisu do usunięcia"
+      security:
+        - bearerAuth: []
+  /api_ryczalt/registeVat/summaryMonth:
+    get:
+      tags:
+        - Rejestr VAT
+      summary: Pobiera podsumowanie rejestru VAT dla wybranego miesiąca
+      description: Zwraca sumy kwot w podziale na stawki VAT i rodzaje transakcji dla wskazanego miesiąca i roku
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Miesiąc, dla którego ma zostać wygenerowane podsumowanie (1-12)
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+          description: Rok, dla którego ma zostać wygenerowane podsumowanie
+      responses:
+        '200':
+          description: Pomyślnie pobrano podsumowanie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Net23:
+                    type: number
+                    description: Suma netto dla stawki 23%
+                    example: 1000.00
+                  Vat23:
+                    type: number
+                    description: Suma VAT dla stawki 23%
+                    example: 230.00
+                  Net8:
+                    type: number
+                    description: Suma netto dla stawki 8%
+                    example: 500.00
+                  Vat8:
+                    type: number
+                    description: Suma VAT dla stawki 8%
+                    example: 40.00
+                  Net5:
+                    type: number
+                    description: Suma netto dla stawki 5%
+                    example: 200.00
+                  Vat5:
+                    type: number
+                    description: Suma VAT dla stawki 5%
+                    example: 10.00
+                  Net0:
+                    type: number
+                    description: Suma netto dla stawki 0%
+                    example: 300.00
+                  Export0:
+                    type: number
+                    description: Suma eksportu
+                    example: 1000.00
+                  WDT0:
+                    type: number
+                    description: Suma WDT
+                    example: 500.00
+                  WSU:
+                    type: number
+                    description: Suma WSU
+                    example: 200.00
+                  ExemptSales:
+                    type: number
+                    description: Suma sprzedaży zwolnionej
+                    example: 150.00
+                  ReverseCharge:
+                    type: number
+                    description: Suma odwrotnego obciążenia
+                    example: 100.00
+                  TotalNetSales:
+                    type: number
+                    description: Suma wszystkich kwot netto
+                    example: 3950.00
+                  TotalVat:
+                    type: number
+                    description: Suma wszystkich kwot VAT
+                    example: 280.00
+                  TotalGrossSales:
+                    type: number
+                    description: Suma wszystkich kwot brutto
+                    example: 4230.00
+        '400':
+          description: Błąd wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas pobierania podsumowania"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Brak wymaganego parametru month lub year"
+      security:
+        - bearerAuth: []
+  /api_ryczalt/registeVat/buy:
+    get:
+      tags:
+        - Rejestr VAT
+      summary: Pobiera wpisy z rejestru VAT zakupu
+      description: Zwraca listę wpisów z rejestru VAT zakupu dla określonego miesiąca i roku z możliwością paginacji
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Miesiąc, dla którego mają zostać pobrane wpisy (1-12)
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+          description: Rok, dla którego mają zostać pobrane wpisy
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Liczba rekordów do pominięcia (do paginacji)
+        - name: take
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+          description: Liczba rekordów do pobrania (do paginacji)
+      responses:
+        '200':
+          description: Pomyślnie pobrano dane
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        vatRegisterId:
+                          type: integer
+                          description: Unikalny identyfikator wpisu
+                        documentTypeId:
+                          type: integer
+                          description: ID typu dokumentu
+                        documentDate:
+                          type: string
+                          format: date
+                          description: Data dokumentu
+                        taxLiabilityDate:
+                          type: string
+                          format: date
+                          description: Data obowiązku podatkowego
+                        dateOfSell:
+                          type: string
+                          format: date
+                          description: Data sprzedaży
+                        documentNumber:
+                          type: string
+                          description: Numer dokumentu
+                        customerId:
+                          type: integer
+                          description: ID kontrahenta
+                        customerName:
+                          type: string
+                          description: Nazwa kontrahenta
+                        sell23Net:
+                          type: number
+                          description: Kwota netto VAT 23%
+                        sell23Vat:
+                          type: number
+                          description: Kwota VAT 23%
+                        sell23Gross:
+                          type: number
+                          description: Kwota brutto VAT 23%
+                        sell8Net:
+                          type: number
+                          description: Kwota netto VAT 8%
+                        sell8Vat:
+                          type: number
+                          description: Kwota VAT 8%
+                        sell8Gross:
+                          type: number
+                          description: Kwota brutto VAT 8%
+                        sell5Net:
+                          type: number
+                          description: Kwota netto VAT 5%
+                        sell5Vat:
+                          type: number
+                          description: Kwota VAT 5%
+                        sell5Gross:
+                          type: number
+                          description: Kwota brutto VAT 5%
+                        rate0:
+                          type: number
+                          description: Kwota netto stawka 0%
+                        wnt:
+                          type: boolean
+                          description: Czy WNT
+                        importOutsideUe:
+                          type: boolean
+                          description: Czy import spoza UE
+                        importServicesUe:
+                          type: boolean
+                          description: Czy import usług UE
+                        importServicesOutsideUe:
+                          type: boolean
+                          description: Czy import usług spoza UE
+                        deduction50:
+                          type: boolean
+                          description: Czy odliczenie 50%
+                        fixedAssets:
+                          type: boolean
+                          description: Czy środki trwałe
+                        correctFixedAssets:
+                          type: boolean
+                          description: Czy korekta środków trwałych
+                        MPP:
+                          type: boolean
+                          description: Czy mechanizm podzielonej płatności
+                        purchaseFixedAssets:
+                          type: boolean
+                          description: Czy zakup środków trwałych
+                        isReverseCharge:
+                          type: boolean
+                          description: Czy odwrotne obciążenie
+                        isThreeSided:
+                          type: boolean
+                          description: Czy transakcja trójstronna
+                        isClosed:
+                          type: boolean
+                          description: Czy wpis jest zamknięty
+                        grossSum:
+                          type: number
+                          description: Suma brutto
+                        vatSum:
+                          type: number
+                          description: Suma VAT
+        '400':
+          description: Błędne żądanie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - Rejestr VAT
+      summary: Dodaje nowy wpis do rejestru VAT zakupu
+      description: Tworzy nowy wpis w rejestrze VAT zakupu z uwzględnieniem walidacji zamkniętego miesiąca
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentTypeId
+                - documentDate
+                - taxLiabilityDate
+                - dateOfSell
+                - documentNumber
+                - customerId
+              properties:
+                documentTypeId:
+                  type: integer
+                  description: ID typu dokumentu
+                documentDate:
+                  type: string
+                  format: date
+                  description: Data dokumentu
+                taxLiabilityDate:
+                  type: string
+                  format: date
+                  description: Data obowiązku podatkowego
+                dateOfSell:
+                  type: string
+                  format: date
+                  description: Data sprzedaży
+                documentNumber:
+                  type: string
+                  description: Numer dokumentu
+                customerId:
+                  type: integer
+                  description: ID kontrahenta
+                sell23Net:
+                  type: number
+                  description: Kwota netto VAT 23%
+                  default: 0
+                sell23Vat:
+                  type: number
+                  description: Kwota VAT 23%
+                  default: 0
+                sell23Gross:
+                  type: number
+                  description: Kwota brutto VAT 23%
+                  default: 0
+                sell8Net:
+                  type: number
+                  description: Kwota netto VAT 8%
+                  default: 0
+                sell8Vat:
+                  type: number
+                  description: Kwota VAT 8%
+                  default: 0
+                sell8Gross:
+                  type: number
+                  description: Kwota brutto VAT 8%
+                  default: 0
+                sell5Net:
+                  type: number
+                  description: Kwota netto VAT 5%
+                  default: 0
+                sell5Vat:
+                  type: number
+                  description: Kwota VAT 5%
+                  default: 0
+                sell5Gross:
+                  type: number
+                  description: Kwota brutto VAT 5%
+                  default: 0
+                sell23ZWNet:
+                  type: number
+                  description: Kwota netto VAT ZW 23%
+                  default: 0
+                sell23ZWVat:
+                  type: number
+                  description: Kwota VAT ZW 23%
+                  default: 0
+                sell23ZWGross:
+                  type: number
+                  description: Kwota brutto VAT ZW 23%
+                  default: 0
+                sell8ZWNet:
+                  type: number
+                  description: Kwota netto VAT ZW 8%
+                  default: 0
+                sell8ZWVat:
+                  type: number
+                  description: Kwota VAT ZW 8%
+                  default: 0
+                sell8ZWGross:
+                  type: number
+                  description: Kwota brutto VAT ZW 8%
+                  default: 0
+                sell5ZWNet:
+                  type: number
+                  description: Kwota netto VAT ZW 5%
+                  default: 0
+                sell5ZWVat:
+                  type: number
+                  description: Kwota VAT ZW 5%
+                  default: 0
+                sell5ZWGross:
+                  type: number
+                  description: Kwota brutto VAT ZW 5%
+                  default: 0
+                rate0:
+                  type: number
+                  description: Kwota netto stawka 0%
+                  default: 0
+                wnt:
+                  type: boolean
+                  description: Czy WNT
+                  default: false
+                importOutsideUe:
+                  type: boolean
+                  description: Czy import spoza UE
+                  default: false
+                importServicesUe:
+                  type: boolean
+                  description: Czy import usług UE
+                  default: false
+                importServicesOutsideUe:
+                  type: boolean
+                  description: Czy import usług spoza UE
+                  default: false
+                deduction50:
+                  type: boolean
+                  description: Czy odliczenie 50%
+                  default: false
+                fixedAssets:
+                  type: boolean
+                  description: Czy środki trwałe
+                  default: false
+                correctFixedAssets:
+                  type: boolean
+                  description: Czy korekta środków trwałych
+                  default: false
+                MPP:
+                  type: boolean
+                  description: Czy mechanizm podzielonej płatności
+                  default: false
+                purchaseFixedAssets:
+                  type: boolean
+                  description: Czy zakup środków trwałych
+                  default: false
+                isReverseCharge:
+                  type: boolean
+                  description: Czy odwrotne obciążenie
+                  default: false
+                isThreeSided:
+                  type: boolean
+                  description: Czy transakcja trójstronna
+                  default: false
+                purchaseMarking:
+                  type: string
+                  description: Oznaczenie zakupu
+                  nullable: true
+                isClosed:
+                  type: boolean
+                  description: Czy wpis jest zamknięty
+                  default: false
+      responses:
+        '200':
+          description: Pomyślnie dodano wpis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                    example: true
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                    example: "Dodano wpis do rejestru VAT zakupu"
+                  vatRegisterId:
+                    type: integer
+                    description: ID utworzonego wpisu
+        '400':
+          description: Błąd walidacji lub wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas dodawania wpisu"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Ten miesiąc jest zamknięty"
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - Rejestr VAT
+      summary: Aktualizuje wpis w rejestrze VAT zakupu
+      description: Aktualizuje istniejący wpis w rejestrze VAT zakupu z uwzględnieniem walidacji zamkniętego miesiąca
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID wpisu do aktualizacji
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - documentTypeId
+                - documentDate
+                - taxLiabilityDate
+                - dateOfSell
+                - documentNumber
+                - customerId
+              properties:
+                documentTypeId:
+                  type: integer
+                  description: ID typu dokumentu
+                documentDate:
+                  type: string
+                  format: date
+                  description: Data dokumentu
+                taxLiabilityDate:
+                  type: string
+                  format: date
+                  description: Data obowiązku podatkowego
+                dateOfSell:
+                  type: string
+                  format: date
+                  description: Data sprzedaży
+                documentNumber:
+                  type: string
+                  description: Numer dokumentu
+                customerId:
+                  type: integer
+                  description: ID kontrahenta
+                sell23Net:
+                  type: number
+                  description: Kwota netto VAT 23%
+                sell23Vat:
+                  type: number
+                  description: Kwota VAT 23%
+                sell23Gross:
+                  type: number
+                  description: Kwota brutto VAT 23%
+                sell8Net:
+                  type: number
+                  description: Kwota netto VAT 8%
+                sell8Vat:
+                  type: number
+                  description: Kwota VAT 8%
+                sell8Gross:
+                  type: number
+                  description: Kwota brutto VAT 8%
+                sell5Net:
+                  type: number
+                  description: Kwota netto VAT 5%
+                sell5Vat:
+                  type: number
+                  description: Kwota VAT 5%
+                sell5Gross:
+                  type: number
+                  description: Kwota brutto VAT 5%
+                sell23ZWNet:
+                  type: number
+                  description: Kwota netto VAT ZW 23%
+                sell23ZWVat:
+                  type: number
+                  description: Kwota VAT ZW 23%
+                sell23ZWGross:
+                  type: number
+                  description: Kwota brutto VAT ZW 23%
+                sell8ZWNet:
+                  type: number
+                  description: Kwota netto VAT ZW 8%
+                sell8ZWVat:
+                  type: number
+                  description: Kwota VAT ZW 8%
+                sell8ZWGross:
+                  type: number
+                  description: Kwota brutto VAT ZW 8%
+                sell5ZWNet:
+                  type: number
+                  description: Kwota netto VAT ZW 5%
+                sell5ZWVat:
+                  type: number
+                  description: Kwota VAT ZW 5%
+                sell5ZWGross:
+                  type: number
+                  description: Kwota brutto VAT ZW 5%
+                rate0:
+                  type: number
+                  description: Kwota netto stawka 0%
+                wnt:
+                  type: boolean
+                  description: Czy WNT
+                importOutsideUe:
+                  type: boolean
+                  description: Czy import spoza UE
+                importServicesUe:
+                  type: boolean
+                  description: Czy import usług UE
+                importServicesOutsideUe:
+                  type: boolean
+                  description: Czy import usług spoza UE
+                deduction50:
+                  type: boolean
+                  description: Czy odliczenie 50%
+                fixedAssets:
+                  type: boolean
+                  description: Czy środki trwałe
+                correctFixedAssets:
+                  type: boolean
+                  description: Czy korekta środków trwałych
+                MPP:
+                  type: boolean
+                  description: Czy mechanizm podzielonej płatności
+                purchaseFixedAssets:
+                  type: boolean
+                  description: Czy zakup środków trwałych
+                isReverseCharge:
+                  type: boolean
+                  description: Czy odwrotne obciążenie
+                isThreeSided:
+                  type: boolean
+                  description: Czy transakcja trójstronna
+                purchaseMarking:
+                  type: string
+                  description: Oznaczenie zakupu
+                  nullable: true
+      responses:
+        '200':
+          description: Pomyślnie zaktualizowano wpis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                    example: true
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                    example: "Zaktualizowano wpis w rejestrze VAT zakupu"
+                  vatRegisterId:
+                    type: integer
+                    description: ID zaktualizowanego wpisu
+        '400':
+          description: Błąd walidacji lub wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas aktualizacji wpisu"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Ten miesiąc jest zamknięty"
+        '404':
+          description: Nie znaleziono wpisu do aktualizacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Komunikat błędu
+                    example: "Nie znaleziono wpisu do aktualizacji"
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - Rejestr VAT
+      summary: Usuwa wpis z rejestru VAT zakupu
+      description: Usuwa wskazany wpis z rejestru VAT zakupu, jeśli miesiąc nie jest zamknięty
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID wpisu do usunięcia
+      responses:
+        '200':
+          description: Pomyślnie usunięto wpis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                    example: true
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                    example: "Usunięto wpis z rejestru VAT zakupu"
+        '400':
+          description: Błąd wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas usuwania wpisu"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Ten miesiąc jest zamknięty"
+        '404':
+          description: Nie znaleziono wpisu do usunięcia
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Komunikat błędu
+                    example: "Nie znaleziono wpisu do usunięcia"
+      security:
+        - bearerAuth: []
+  /api_ryczalt/registeVat/summaryMonthBuy:
+    get:
+      tags:
+        - Rejestr VAT
+      summary: Pobiera podsumowanie rejestru VAT zakupu dla wybranego miesiąca
+      description: Zwraca sumy kwot w podziale na stawki VAT i rodzaje transakcji dla wskazanego miesiąca i roku
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Miesiąc, dla którego ma zostać wygenerowane podsumowanie (1-12)
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+          description: Rok, dla którego ma zostać wygenerowane podsumowanie
+      responses:
+        '200':
+          description: Pomyślnie pobrano podsumowanie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_net_23:
+                    type: number
+                    description: Suma netto dla stawki 23%
+                    example: 1000.00
+                  total_vat_23:
+                    type: number
+                    description: Suma VAT dla stawki 23% (z uwzględnieniem odliczenia 50%)
+                    example: 230.00
+                  total_net_8:
+                    type: number
+                    description: Suma netto dla stawki 8%
+                    example: 500.00
+                  total_vat_8:
+                    type: number
+                    description: Suma VAT dla stawki 8% (z uwzględnieniem odliczenia 50%)
+                    example: 40.00
+                  total_net_5:
+                    type: number
+                    description: Suma netto dla stawki 5%
+                    example: 200.00
+                  total_vat_5:
+                    type: number
+                    description: Suma VAT dla stawki 5% (z uwzględnieniem odliczenia 50%)
+                    example: 10.00
+                  total_zw_net_23:
+                    type: number
+                    description: Suma netto dla stawki ZW 23%
+                    example: 300.00
+                  total_zw_vat_23:
+                    type: number
+                    description: Suma VAT dla stawki ZW 23% (z uwzględnieniem odliczenia 50%)
+                    example: 69.00
+                  total_zw_net_8:
+                    type: number
+                    description: Suma netto dla stawki ZW 8%
+                    example: 200.00
+                  total_zw_vat_8:
+                    type: number
+                    description: Suma VAT dla stawki ZW 8% (z uwzględnieniem odliczenia 50%)
+                    example: 16.00
+                  total_zw_net_5:
+                    type: number
+                    description: Suma netto dla stawki ZW 5%
+                    example: 100.00
+                  total_zw_vat_5:
+                    type: number
+                    description: Suma VAT dla stawki ZW 5% (z uwzględnieniem odliczenia 50%)
+                    example: 5.00
+                  total_net:
+                    type: number
+                    description: Suma wszystkich kwot netto
+                    example: 2300.00
+                  total_net_not_deductible:
+                    type: number
+                    description: Suma kwot netto niepodlegających odliczeniu
+                    example: 300.00
+                  total_gross:
+                    type: number
+                    description: Suma wszystkich kwot brutto
+                    example: 2760.00
+                  total_net_deductible:
+                    type: number
+                    description: Suma kwot netto podlegających odliczeniu
+                    example: 2000.00
+                  total_vat_deductible:
+                    type: number
+                    description: Suma VAT do odliczenia (z uwzględnieniem odliczenia 50%)
+                    example: 370.00
+        '400':
+          description: Błąd wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas pobierania podsumowania"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Brak wymaganego parametru month lub year"
+      security:
+        - bearerAuth: []
