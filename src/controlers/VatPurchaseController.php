@@ -60,8 +60,8 @@ class VatPurchaseController {
                     (sell23Gross + sell8Gross + sell5Gross + rate0 + wnt + 
                      importOutsideUe + importServicesUe + importServicesOutsideUe) as grossSum,
                     (CASE 
-                        WHEN v.deduction50 = 1 THEN (sell23Vat + sell8Vat + sell5Vat) * 0.5
-                        ELSE (sell23Vat + sell8Vat + sell5Vat)
+                        WHEN v.deduction50 = 1 THEN (sell23Vat + sell8Vat + sell5Vat + sell23ZWVat + sell8ZWVat + sell5ZWVat) * 0.5
+                        ELSE (sell23Vat + sell8Vat + sell5Vat + sell23ZWVat + sell8ZWVat + sell5ZWVat)
                     END) as vatSum
                     FROM registerVat v
                     LEFT JOIN customers c ON v.customerId = c.customerId
@@ -450,27 +450,27 @@ class VatPurchaseController {
             }
 
             $query = "SELECT 
-                    SUM(sell23Net) as total_net_23,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell23Net ELSE sell23Net * 0.5 END) as total_net_23,
                     SUM(CASE WHEN deduction50 = 0 THEN sell23Vat ELSE sell23Vat * 0.5 END) as total_vat_23,
-                    SUM(sell8Net) as total_net_8,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell8Net ELSE sell8Net * 0.5 END) as total_net_8,
                     SUM(CASE WHEN deduction50 = 0 THEN sell8Vat ELSE sell8Vat * 0.5 END) as total_vat_8,
-                    SUM(sell5Net) as total_net_5,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell5Net ELSE sell5Net * 0.5 END) as total_net_5,
                     SUM(CASE WHEN deduction50 = 0 THEN sell5Vat ELSE sell5Vat * 0.5 END) as total_vat_5,
                     
-                    SUM(sell23ZWNet) as total_zw_net_23,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell23ZWNet ELSE sell23ZWNet * 0.5 END) as total_zw_net_23,
                     SUM(CASE WHEN deduction50 = 0 THEN sell23ZWVat ELSE sell23ZWVat * 0.5 END) as total_zw_vat_23,
-                    SUM(sell8ZWNet) as total_zw_net_8,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell8ZWNet ELSE sell8ZWNet * 0.5 END) as total_zw_net_8,
                     SUM(CASE WHEN deduction50 = 0 THEN sell8ZWVat ELSE sell8ZWVat * 0.5 END) as total_zw_vat_8,
-                    SUM(sell5ZwNet) as total_zw_net_5,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell5ZWNet ELSE sell5ZWNet * 0.5 END) as total_zw_net_5,
                     SUM(CASE WHEN deduction50 = 0 THEN sell5ZWVat ELSE sell5ZWVat * 0.5 END) as total_zw_vat_5,
                     
-                    SUM(sell23net + sell8net + sell5net + rate0) as total_net,
+                    SUM(CASE WHEN deduction50 = 0 THEN sell23Net ELSE sell23Net * 0.5 END) + SUM(CASE WHEN deduction50 = 0 THEN sell8Net ELSE sell8Net * 0.5 END) + SUM(CASE WHEN deduction50 = 0 THEN sell5Net ELSE sell5Net * 0.5 END) + SUM(CASE WHEN deduction50 = 0 THEN sell23ZWNet ELSE sell23ZWNet * 0.5 END) + SUM(CASE WHEN deduction50 = 0 THEN sell8ZWNet ELSE sell8ZWNet * 0.5 END) + SUM(CASE WHEN deduction50 = 0 THEN sell5ZWNet ELSE sell5ZWNet * 0.5 END) as total_net,
                     SUM(rate0) as total_net_not_deductible,
-                    SUM(sell23gross + sell8gross + sell5gross + rate0) as total_gross,
+                    SUM(sell23gross + sell8gross + sell5gross + rate0 + sell23ZWgross + sell8ZWgross + sell5ZWgross) as total_gross,
                     SUM(sell23net + sell8net + sell5net + rate0) as total_net_deductible,
                     SUM(CASE 
-                        WHEN deduction50 = 1 THEN (sell23vat + sell8vat + sell5vat) * 0.5
-                        ELSE (sell23vat + sell8vat + sell5vat)
+                        WHEN deduction50 = 1 THEN (sell23vat + sell8vat + sell5vat + sell23ZWvat + sell8ZWvat + sell5ZWvat) * 0.5
+                        ELSE (sell23vat + sell8vat + sell5vat + sell23ZWvat + sell8ZWvat + sell5ZWvat)
                     END) as total_vat_deductible
                 FROM registerVat 
                 WHERE MONTH(taxLiabilityDate) = :month 

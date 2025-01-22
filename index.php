@@ -16,6 +16,8 @@ require_once 'src/controlers/FlatRateController.php';
 require_once 'src/controlers/CloseMonthController.php';
 require_once 'src/controlers/VatRegisterController.php';
 require_once 'src/controlers/VatPurchaseController.php';
+require_once 'src/controlers/InternalEvidenceController.php';
+
 // Routing
 $path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);   
 
@@ -263,6 +265,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/registeVat/s
     $controller->getSummaryMonth();
     return;
 }
+
+// Pobieranie wpisów wewnętrznego dowodu
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/internalEvidence') {
+    checkToken();
+    $controller = new InternalEvidenceController($db);
+    $controller->getInternalEvidence();
+    return;
+}
+
+// Dodawanie nowego wpisu wewnętrznego dowodu
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $path === '/api_ryczalt/internalEvidence') {
+    checkToken();
+    $controller = new InternalEvidenceController($db);
+    $controller->addInternalEvidence();
+    return;
+}
+
+// Aktualizacja wpisu wewnętrznego dowodu
+if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $path === '/api_ryczalt/internalEvidence') {
+    checkToken();
+    $controller = new InternalEvidenceController($db);
+    $controller->updateInternalEvidence();
+    return;
+}
+
+// Usuwanie wpisu wewnętrznego dowodu
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $path === '/api_ryczalt/internalEvidence') {
+    checkToken();
+    $controller = new InternalEvidenceController($db);
+    $controller->deleteInternalEvidence();
+    return;
+}
+
 
 function checkToken() {
     // Pobranie tokenu z nagłówków
