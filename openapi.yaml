@@ -2570,3 +2570,368 @@ paths:
                     example: "Brak wymaganego parametru month lub year"
       security:
         - bearerAuth: []
+
+  /api_ryczalt/internalEvidence:
+    get:
+      tags:
+        - Ewidencja wewnętrzna
+      summary: Pobiera listę wpisów ewidencji wewnętrznej
+      description: Zwraca listę wpisów ewidencji wewnętrznej dla danego miesiąca i roku
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: Miesiąc (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: true
+          description: Rok
+          schema:
+            type: integer
+        - name: skip
+          in: query
+          description: Liczba rekordów do pominięcia (paginacja)
+          schema:
+            type: integer
+            default: 0
+        - name: take
+          in: query
+          description: Liczba rekordów do pobrania (paginacja)
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lista wpisów ewidencji wewnętrznej
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        internalEvidenceId:
+                          type: integer
+                          description: Unikalny identyfikator wpisu
+                        isCoast:
+                          type: boolean
+                          description: Czy jest to koszt
+                        documentNumber:
+                          type: string
+                          description: Numer dokumentu
+                        documentDate:
+                          type: string
+                          format: date
+                          description: Data dokumentu
+                        description:
+                          type: string
+                          description: Opis
+                        amount:
+                          type: number
+                          description: Ilość
+                        price:
+                          type: number
+                          description: Cena
+                        unit:
+                          type: string
+                          description: Jednostka miary
+                        personIssuing:
+                          type: string
+                          description: Osoba wystawiająca
+                        taxVat:
+                          type: string
+                          description: Stawka VAT
+                        remarks:
+                          type: string
+                          description: Uwagi
+                        companyId:
+                          type: integer
+                          description: ID firmy
+                        userInsert:
+                          type: integer
+                          description: ID użytkownika dodającego wpis
+                        dateInsert:
+                          type: string
+                          format: date-time
+                          description: Data dodania wpisu
+                        userUpdate:
+                          type: integer
+                          nullable: true
+                          description: ID użytkownika aktualizującego wpis
+                        dateUpdate:
+                          type: string
+                          format: date-time
+                          nullable: true
+                          description: Data aktualizacji wpisu
+                        isBooked:
+                          type: boolean
+                          description: Czy zaksięgowane
+                        isClosed:
+                          type: boolean
+                          description: Czy zamknięte
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+
+    post:
+      tags:
+        - Ewidencja wewnętrzna
+      summary: Dodaje nowy wpis do ewidencji wewnętrznej
+      description: Tworzy nowy wpis w ewidencji wewnętrznej z walidacją zamkniętego miesiąca
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isCoast
+                - documentNumber
+                - documentDate
+                - description
+                - amount
+                - price
+              properties:
+                isCoast:
+                  type: boolean
+                  description: Czy jest to koszt
+                documentNumber:
+                  type: string
+                  description: Numer dokumentu
+                documentDate:
+                  type: string
+                  format: date
+                  description: Data dokumentu
+                description:
+                  type: string
+                  description: Opis
+                amount:
+                  type: number
+                  description: Ilość
+                price:
+                  type: number
+                  description: Cena
+                unit:
+                  type: string
+                  description: Jednostka miary
+                personIssuing:
+                  type: string
+                  description: Osoba wystawiająca
+                taxVat:
+                  type: string
+                  description: Stawka VAT
+                remarks:
+                  type: string
+                  description: Uwagi
+                isBooked:
+                  type: boolean
+                  description: Czy zaksięgowane
+                isClosed:
+                  type: boolean
+                  description: Czy zamknięte
+      responses:
+        '200':
+          description: Wpis został dodany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+                  internalEvidenceId:
+                    type: integer
+                    description: ID utworzonego wpisu
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+
+    put:
+      tags:
+        - Ewidencja wewnętrzna
+      summary: Aktualizuje wpis w ewidencji wewnętrznej
+      description: Aktualizuje istniejący wpis w ewidencji wewnętrznej z walidacją zamkniętego miesiąca
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID wpisu do aktualizacji
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isCoast
+                - documentNumber
+                - documentDate
+                - description
+                - amount
+                - price
+              properties:
+                isCoast:
+                  type: boolean
+                  description: Czy jest to koszt
+                documentNumber:
+                  type: string
+                  description: Numer dokumentu
+                documentDate:
+                  type: string
+                  format: date
+                  description: Data dokumentu
+                description:
+                  type: string
+                  description: Opis
+                amount:
+                  type: number
+                  description: Ilość
+                price:
+                  type: number
+                  description: Cena
+                unit:
+                  type: string
+                  description: Jednostka miary
+                personIssuing:
+                  type: string
+                  description: Osoba wystawiająca
+                taxVat:
+                  type: string
+                  description: Stawka VAT
+                remarks:
+                  type: string
+                  description: Uwagi
+                isBooked:
+                  type: boolean
+                  description: Czy zaksięgowane
+                isClosed:
+                  type: boolean
+                  description: Czy zamknięte
+      responses:
+        '200':
+          description: Wpis został zaktualizowany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+        '404':
+          description: Nie znaleziono wpisu do aktualizacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Komunikat błędu
+
+    delete:
+      tags:
+        - Ewidencja wewnętrzna
+      summary: Usuwa wpis z ewidencji wewnętrznej
+      description: Usuwa wskazany wpis z ewidencji wewnętrznej, jeśli miesiąc nie jest zamknięty
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: ID wpisu do usunięcia
+      responses:
+        '200':
+          description: Wpis został usunięty
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Status operacji
+                  details:
+                    type: string
+                    description: Komunikat sukcesu
+        '400':
+          description: Błąd wykonania operacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+        '404':
+          description: Nie znaleziono wpisu do usunięcia
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  details:
+                    type: string
+                    description: Komunikat błędu
