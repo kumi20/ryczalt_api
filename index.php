@@ -17,6 +17,7 @@ require_once 'src/controlers/CloseMonthController.php';
 require_once 'src/controlers/VatRegisterController.php';
 require_once 'src/controlers/VatPurchaseController.php';
 require_once 'src/controlers/InternalEvidenceController.php';
+require_once 'src/controlers/zus.php';
 
 // Routing
 $path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);   
@@ -295,6 +296,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $path === '/api_ryczalt/internalE
     checkToken();
     $controller = new InternalEvidenceController($db);
     $controller->deleteInternalEvidence();
+    return;
+}
+
+// Pobieranie wpisów ZUS
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/zus') {
+    checkToken();
+    $controller = new ZusController($db);
+    $controller->getContributionsWithIncome();
+    return;
+}
+
+//pobranie zaplaconych skladek
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/zus/contributions') {
+    checkToken();
+    $controller = new ZusController($db);
+    $controller->getContributions();
+    return;
+}
+
+//dodawanie wpisu zaplaconych skladek
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $path === '/api_ryczalt/zus/contributions') {
+    checkToken();
+    $controller = new ZusController($db);
+    $controller->createContribution();
+    return;
+}
+
+//aktualizacja wpisu zaplaconych skladek
+if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $path === '/api_ryczalt/zus/contributions') {
+    checkToken();
+    $controller = new ZusController($db);
+    $controller->updateContribution();
+    return;
+}
+
+//usuwanie wpisu zaplaconych skladek
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $path === '/api_ryczalt/zus/contributions') {
+    checkToken();
+    $controller = new ZusController($db);
+    $controller->deleteContribution();
     return;
 }
 

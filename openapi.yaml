@@ -2935,3 +2935,447 @@ paths:
                   details:
                     type: string
                     description: Komunikat błędu
+
+  /api_ryczalt/zus/contributions:
+    get:
+      tags:
+        - ZUS
+      summary: Pobierz składki ZUS dla danego roku
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          description: Rok, dla którego mają zostać pobrane składki
+          schema:
+            type: integer
+            example: 2024
+      responses:
+        '200':
+          description: Lista składek ZUS
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        contributionsZUSId:
+                          type: integer
+                          description: Identyfikator składki ZUS
+                        month:
+                          type: integer
+                          description: Miesiąc składki
+                        year:
+                          type: integer
+                          description: Rok składki
+                        isContributionHolidays:
+                          type: boolean
+                          description: Czy jest to urlop od składek
+                        social:
+                          type: string
+                          format: decimal
+                          description: Składka społeczna
+                        isSocialPaid:
+                          type: boolean
+                          description: Czy składka społeczna została opłacona
+                        dateSocialPaid:
+                          type: string
+                          format: date
+                          description: Data opłacenia składki społecznej
+                        contributionHealth:
+                          type: string
+                          format: decimal
+                          description: Składka zdrowotna
+                        isHealthPaid:
+                          type: boolean
+                          description: Czy składka zdrowotna została opłacona
+                        dateHealthPaid:
+                          type: string
+                          format: date
+                          description: Data opłacenia składki zdrowotnej
+                        fpfgsw:
+                          type: string
+                          format: decimal
+                          description: Składka FP i FGŚP
+                        isFpfgswPaid:
+                          type: boolean
+                          description: Czy składka FP i FGŚP została opłacona
+                        dateFpfgswPaid:
+                          type: string
+                          format: date
+                          description: Data opłacenia składki FP i FGŚP
+                        fp:
+                          type: string
+                          format: decimal
+                          description: Składka FP
+                        isFpPaid:
+                          type: boolean
+                          description: Czy składka FP została opłacona
+                        dateFpPaid:
+                          type: string
+                          format: date
+                          description: Data opłacenia składki FP
+        '400':
+          description: Błąd podczas pobierania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Opis błędu
+                  details:
+                    type: string
+                    description: Szczegóły błędu
+
+    post:
+      tags:
+        - ZUS
+      summary: Dodaj nową składkę ZUS
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - month
+                - year
+              properties:
+                month:
+                  type: integer
+                  description: Miesiąc składki
+                year:
+                  type: integer
+                  description: Rok składki
+                isContributionHolidays:
+                  type: boolean
+                  description: Czy jest to urlop od składek
+                social:
+                  type: number
+                  format: decimal
+                  description: Składka społeczna
+                isSocialPaid:
+                  type: boolean
+                  description: Czy składka społeczna została opłacona
+                dateSocialPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki społecznej
+                contributionHealth:
+                  type: number
+                  format: decimal
+                  description: Składka zdrowotna
+                isHealthPaid:
+                  type: boolean
+                  description: Czy składka zdrowotna została opłacona
+                dateHealthPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki zdrowotnej
+                fpfgsw:
+                  type: number
+                  format: decimal
+                  description: Składka FP i FGŚP
+                isFpfgswPaid:
+                  type: boolean
+                  description: Czy składka FP i FGŚP została opłacona
+                dateFpfgswPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki FP i FGŚP
+                fp:
+                  type: number
+                  format: decimal
+                  description: Składka FP
+                isFpPaid:
+                  type: boolean
+                  description: Czy składka FP została opłacona
+                dateFpPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki FP
+      responses:
+        '200':
+          description: Składka ZUS została dodana
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Składka ZUS została dodana"
+                  id:
+                    type: integer
+                    description: Identyfikator nowej składki
+        '400':
+          description: Błąd podczas dodawania składki
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Opis błędu
+                  details:
+                    type: string
+                    description: Szczegóły błędu
+
+
+    put:
+      tags:
+        - ZUS
+      summary: Aktualizuj składkę ZUS
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identyfikator składki ZUS
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - month
+                - year
+              properties:
+                month:
+                  type: integer
+                  description: Miesiąc składki
+                year:
+                  type: integer
+                  description: Rok składki
+                isContributionHolidays:
+                  type: boolean
+                  description: Czy jest to urlop od składek
+                social:
+                  type: number
+                  format: decimal
+                  description: Składka społeczna
+                isSocialPaid:
+                  type: boolean
+                  description: Czy składka społeczna została opłacona
+                dateSocialPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki społecznej
+                contributionHealth:
+                  type: number
+                  format: decimal
+                  description: Składka zdrowotna
+                isHealthPaid:
+                  type: boolean
+                  description: Czy składka zdrowotna została opłacona
+                dateHealthPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki zdrowotnej
+                fpfgsw:
+                  type: number
+                  format: decimal
+                  description: Składka FP i FGŚP
+                isFpfgswPaid:
+                  type: boolean
+                  description: Czy składka FP i FGŚP została opłacona
+                dateFpfgswPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki FP i FGŚP
+                fp:
+                  type: number
+                  format: decimal
+                  description: Składka FP
+                isFpPaid:
+                  type: boolean
+                  description: Czy składka FP została opłacona
+                dateFpPaid:
+                  type: string
+                  format: date
+                  description: Data opłacenia składki FP
+      responses:
+        '200':
+          description: Składka ZUS została zaktualizowana
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Składka ZUS została zaktualizowana"
+        '404':
+          description: Składka ZUS nie została znaleziona
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Składka ZUS nie została znaleziona"
+        '400':
+          description: Błąd podczas aktualizacji składki
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Opis błędu
+                  details:
+                    type: string
+                    description: Szczegóły błędu
+
+    delete:
+      tags:
+        - ZUS
+      summary: Usuń składkę ZUS
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Identyfikator składki ZUS
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Składka ZUS została usunięta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Składka ZUS została usunięta"
+        '404':
+          description: Składka ZUS nie została znaleziona
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Składka ZUS nie została znaleziona"
+        '400':
+          description: Błąd podczas usuwania składki
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Opis błędu
+                  details:
+                    type: string
+                    description: Szczegóły błędu
+
+  /api_ryczalt/zus:
+    get:
+      tags:
+        - ZUS
+      summary: Pobierz składki ZUS wraz z dochodem
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: year
+          in: query
+          required: true
+          description: Rok, dla którego mają zostać pobrane składki
+          schema:
+            type: integer
+            example: 2024
+        - name: month
+          in: query
+          required: false
+          description: Miesiąc, dla którego mają zostać pobrane składki
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 1
+      responses:
+        '200':
+          description: Lista składek ZUS z dochodem
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: Identyfikator składki
+                        base:
+                          type: string
+                          format: decimal
+                          description: Podstawa składki
+                        year:
+                          type: integer
+                          description: Rok składki
+                        social:
+                          type: string
+                          format: decimal
+                          description: Składka społeczna
+                        sickness:
+                          type: string
+                          format: decimal
+                          description: Składka chorobowa
+                        social_u:
+                          type: string
+                          format: decimal
+                          description: Składka społeczna (ubezpieczenie)
+                        sickness_u:
+                          type: string
+                          format: decimal
+                          description: Składka chorobowa (ubezpieczenie)
+                        FGSP:
+                          type: string
+                          format: decimal
+                          description: Składka FGŚP
+                        totalIncome:
+                          type: string
+                          format: decimal
+                          description: Całkowity dochód
+                        previousMonthSocial:
+                          type: string
+                          format: decimal
+                          description: Składka społeczna z poprzedniego miesiąca
+        '400':
+          description: Błąd podczas pobierania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Opis błędu
+                  details:
+                    type: string
+                    description: Szczegóły błędu
