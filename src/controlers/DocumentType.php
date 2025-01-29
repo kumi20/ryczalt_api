@@ -22,7 +22,7 @@ class DocumentTypeController
         
 
         try {
-            $sql = 'SELECT id as documentTypeId, name, signature FROM document_type';
+            $sql = 'SELECT id as documentTypeId, name, signature, document_type FROM document_type';
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute();

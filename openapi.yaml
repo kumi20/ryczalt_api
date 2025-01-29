@@ -404,25 +404,25 @@ paths:
                     countryId:
                       type: number
                       example: 21
-                contactDetails:
-                  type: object
-                  description: Szczegóły kontaktowe kontrahenta
-                  properties:
-                    contactPerson:
-                      type: string
-                      example: "Jan Kowalski"
-                    email:
-                      type: string
-                      example: "kontakt@firmaa.pl"
-                    phone:
-                      type: string
-                      example: "+48 600 700 800"
-                    website:
-                      type: string
-                      example: "https://firmaa.pl"
-                    fax:
-                      type: string
-                      example: "+48 22 123 45 67"      
+                    contactDetails:
+                      type: object
+                      description: Szczegóły kontaktowe kontrahenta
+                      properties:
+                        contactPerson:
+                          type: string
+                          example: "Jan Kowalski"
+                        email:
+                          type: string
+                          example: "kontakt@firmaa.pl"
+                        phone:
+                          type: string
+                          example: "+48 600 700 800"
+                        website:
+                          type: string
+                          example: "https://firmaa.pl"
+                        fax:
+                          type: string
+                          example: "+48 22 123 45 67"      
       responses:
         '200':
           description: Kontrahent został pomyślnie dodany
@@ -518,25 +518,25 @@ paths:
                     countryId:
                       type: number
                       example: 21
-                contactDetails:
-                  type: object
-                  description: Szczegóły kontaktowe kontrahenta
-                  properties:
-                    contactPerson:
-                      type: string
-                      example: "Jan Kowalski"
-                    email:
-                      type: string
-                      example: "kontakt@firmaa.pl"
-                    phone:
-                      type: string
-                      example: "+48 600 700 800"
-                    website:
-                      type: string
-                      example: "https://firmaa.pl"
-                    fax:
-                      type: string
-                      example: "+48 22 123 45 67"    
+                    contactDetails:
+                      type: object
+                      description: Szczegóły kontaktowe kontrahenta
+                      properties:
+                        contactPerson:
+                          type: string
+                          example: "Jan Kowalski"
+                        email:
+                          type: string
+                          example: "kontakt@firmaa.pl"
+                        phone:
+                          type: string
+                          example: "+48 600 700 800"
+                        website:
+                          type: string
+                          example: "https://firmaa.pl"
+                        fax:
+                          type: string
+                          example: "+48 22 123 45 67"    
       responses:
         '200':
           description: Kontrahent został pomyślnie dodany
@@ -3379,3 +3379,757 @@ paths:
                   details:
                     type: string
                     description: Szczegóły błędu
+
+  /api_ryczalt/flat-rate-tax:
+    get:
+      tags:
+        - Podatek ryczałtowy
+      summary: Pobiera listę podatków ryczałtowych
+      description: Zwraca listę podatków ryczałtowych dla danego roku
+      parameters:
+        - name: year
+          in: query
+          required: true
+          description: Rok, dla którego mają zostać pobrane podatki
+          schema:
+            type: integer
+            format: int32
+            minimum: 2000
+            maximum: 2100
+      responses:
+        '200':
+          description: Pomyślnie pobrano listę podatków
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        flatRateTaxId:
+                          type: integer
+                          description: Identyfikator podatku ryczałtowego
+                        month:
+                          type: integer
+                          description: Miesiąc (1-12)
+                          minimum: 1
+                          maximum: 12
+                        year:
+                          type: integer
+                          description: Rok
+                        income:
+                          type: number
+                          format: decimal
+                          description: Przychód
+                        reductionAmountPreviousMonth:
+                          type: number
+                          format: decimal
+                          description: Kwota zmniejszenia z poprzedniego miesiąca
+                        socialInsurance:
+                          type: number
+                          format: decimal
+                          description: Składki na ubezpieczenie społeczne
+                        reductionAmountHealt:
+                          type: number
+                          format: decimal
+                          description: Kwota zmniejszenia - składka zdrowotna
+                        baseTax:
+                          type: number
+                          format: decimal
+                          description: Podstawa opodatkowania
+                        reduceTaxPreviousMonth:
+                          type: number
+                          format: decimal
+                          description: Zmniejszenie podatku z poprzedniego miesiąca
+                        reduceTaxNextMonth:
+                          type: number
+                          format: decimal
+                          description: Zmniejszenie podatku na następny miesiąc
+                        transferHealt:
+                          type: number
+                          format: decimal
+                          description: Składka zdrowotna do przekazania
+                        amountFlatRateTax:
+                          type: number
+                          format: decimal
+                          description: Kwota podatku ryczałtowego
+                        dataPayment:
+                          type: string
+                          format: date
+                          description: Data płatności
+                        isPaid:
+                          type: boolean
+                          description: Czy podatek został opłacony
+        '400':
+          description: Błąd walidacji lub przetwarzania
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+      security:
+        - bearerAuth: []
+
+    post:
+      tags:
+        - Podatek ryczałtowy
+      summary: Dodaje nowy podatek ryczałtowy
+      description: Tworzy nowy wpis podatku ryczałtowego
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - month
+                - year
+              properties:
+                month:
+                  type: integer
+                  description: Miesiąc (1-12)
+                  minimum: 1
+                  maximum: 12
+                year:
+                  type: integer
+                  description: Rok
+                income:
+                  type: number
+                  format: decimal
+                  description: Przychód
+                reductionAmountPreviousMonth:
+                  type: number
+                  format: decimal
+                  description: Kwota zmniejszenia z poprzedniego miesiąca
+                socialInsurance:
+                  type: number
+                  format: decimal
+                  description: Składki na ubezpieczenie społeczne
+                reductionAmountHealt:
+                  type: number
+                  format: decimal
+                  description: Kwota zmniejszenia - składka zdrowotna
+                baseTax:
+                  type: number
+                  format: decimal
+                  description: Podstawa opodatkowania
+                reduceTaxPreviousMonth:
+                  type: number
+                  format: decimal
+                  description: Zmniejszenie podatku z poprzedniego miesiąca
+                reduceTaxNextMonth:
+                  type: number
+                  format: decimal
+                  description: Zmniejszenie podatku na następny miesiąc
+                transferHealt:
+                  type: number
+                  format: decimal
+                  description: Składka zdrowotna do przekazania
+                amountFlatRateTax:
+                  type: number
+                  format: decimal
+                  description: Kwota podatku ryczałtowego
+                dataPayment:
+                  type: string
+                  format: date
+                  description: Data płatności
+                isPaid:
+                  type: boolean
+                  description: Czy podatek został opłacony
+      responses:
+        '200':
+          description: Podatek został pomyślnie dodany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  id:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/Error400'
+      security:
+        - bearerAuth: []
+
+    put:
+      tags:
+        - Podatek ryczałtowy
+      summary: Aktualizuje istniejący podatek ryczałtowy
+      description: Aktualizuje dane podatku ryczałtowego
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID podatku ryczałtowego do aktualizacji
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlatRateTaxUpdate'
+      responses:
+        '200':
+          description: Podatek został pomyślnie zaktualizowany
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Nie znaleziono podatku ryczałtowego
+        '400':
+          $ref: '#/components/responses/Error400'
+      security:
+        - bearerAuth: []
+
+    delete:
+      tags:
+        - Podatek ryczałtowy
+      summary: Usuwa podatek ryczałtowy
+      description: Usuwa wskazany podatek ryczałtowy
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: ID podatku ryczałtowego do usunięcia
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Podatek został pomyślnie usunięty
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Nie znaleziono podatku ryczałtowego
+        '400':
+          $ref: '#/components/responses/Error400'
+      security:
+        - bearerAuth: []
+
+  /api_ryczalt/tax-offices:
+    get:
+      tags:
+        - Urzędy skarbowe
+      summary: Pobierz listę urzędów skarbowych
+      description: Zwraca listę wszystkich urzędów skarbowych
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista urzędów skarbowych
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    taxOfficeId:
+                      type: integer
+                      description: Unikalny identyfikator urzędu skarbowego
+                      example: 1
+                    voivodeship:
+                      type: string
+                      description: Województwo
+                      example: "Mazowieckie"
+                    type:
+                      type: string
+                      description: Typ urzędu skarbowego
+                      example: "Urząd Skarbowy"
+                    name:
+                      type: string
+                      description: Nazwa urzędu skarbowego
+                      example: "Pierwszy Urząd Skarbowy w Warszawie"
+                    postalCode:
+                      type: string
+                      description: Kod pocztowy
+                      example: "00-001"
+                    city:
+                      type: string
+                      description: Miejscowość
+                      example: "Warszawa"
+                    address:
+                      type: string
+                      description: Adres
+                      example: "ul. Przykładowa 1"
+                    phone:
+                      type: string
+                      description: Numer telefonu
+                      example: "+48 22 123 45 67"
+                    fax:
+                      type: string
+                      description: Numer faksu
+                      example: "+48 22 123 45 68"
+                    email:
+                      type: string
+                      description: Adres email
+                      example: "us.warszawa@mf.gov.pl"
+                    code:
+                      type: string
+                      description: Kod urzędu skarbowego
+                      example: "1435"
+        '400':
+          description: Błąd podczas pobierania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Błąd pobierania danych"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Szczegóły błędu z bazy danych"
+        '401':
+          description: Brak autoryzacji
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Brak autoryzacji"
+
+  /api_ryczalt/notes:
+    get:
+      tags:
+        - Uwagi
+      summary: Pobiera listę uwag
+      description: Zwraca listę uwag dla zalogowanej firmy
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista uwag
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ID_UWAGA:
+                          type: integer
+                          description: Identyfikator uwagi
+                        TRESC:
+                          type: string
+                          description: Treść uwagi
+                        DLAPRZYCHODU:
+                          type: boolean
+                          description: Czy uwaga dotyczy przychodu
+                        DLAROZCHODU:
+                          type: boolean
+                          description: Czy uwaga dotyczy rozchodu
+        '400':
+          description: Błąd podczas pobierania danych
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+
+    post:
+      tags:
+        - Uwagi
+      summary: Dodaje nową uwagę
+      description: Tworzy nową uwagę dla zalogowanej firmy
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - TRESC
+              properties:
+                TRESC:
+                  type: string
+                  description: Treść uwagi
+                DLAPRZYCHODU:
+                  type: boolean
+                  description: Czy uwaga dotyczy przychodu
+                  default: false
+                DLAROZCHODU:
+                  type: boolean
+                  description: Czy uwaga dotyczy rozchodu
+                  default: false
+      responses:
+        '200':
+          description: Uwaga została dodana
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Komunikat sukcesu
+                  id:
+                    type: integer
+                    description: ID utworzonej uwagi
+        '400':
+          description: Błąd podczas dodawania uwagi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+
+    put:
+      tags:
+        - Uwagi
+      summary: Aktualizuje uwagę
+      description: Aktualizuje istniejącą uwagę dla zalogowanej firmy
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID uwagi do aktualizacji
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - TRESC
+              properties:
+                TRESC:
+                  type: string
+                  description: Treść uwagi
+                DLAPRZYCHODU:
+                  type: boolean
+                  description: Czy uwaga dotyczy przychodu
+                DLAROZCHODU:
+                  type: boolean
+                  description: Czy uwaga dotyczy rozchodu
+      responses:
+        '200':
+          description: Uwaga została zaktualizowana
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Komunikat sukcesu
+        '400':
+          description: Błąd podczas aktualizacji uwagi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+        '404':
+          description: Nie znaleziono uwagi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Komunikat błędu
+
+    delete:
+      tags:
+        - Uwagi
+      summary: Usuwa uwagę
+      description: Usuwa istniejącą uwagę dla zalogowanej firmy
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID uwagi do usunięcia
+      responses:
+        '200':
+          description: Uwaga została usunięta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Komunikat sukcesu
+        '400':
+          description: Błąd podczas usuwania uwagi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+        '404':
+          description: Nie znaleziono uwagi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Komunikat błędu
+
+  /api_ryczalt/flat-rate-tax/calculate:
+    get:
+      tags:
+        - Podatek ryczałtowy
+      summary: Oblicza podatek ryczałtowy dla danego miesiąca
+      description: >
+        Oblicza podatek ryczałtowy na podstawie przychodów z danego miesiąca, 
+        uwzględniając składki ZUS z poprzedniego miesiąca oraz kwoty zmniejszenia podatku.
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: Miesiąc, dla którego ma zostać obliczony podatek (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 3
+        - name: year
+          in: query
+          required: true
+          description: Rok, dla którego ma zostać obliczony podatek
+          schema:
+            type: integer
+            minimum: 2000
+            example: 2024
+      responses:
+        '200':
+          description: Obliczony podatek ryczałtowy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  income:
+                    type: string
+                    description: Suma przychodów
+                    example: "10000.00"
+                  reductionAmountPreviousMonth:
+                    type: string
+                    description: Kwota zmniejszenia z poprzedniego miesiąca
+                    example: "500.00"
+                  socialInsurance:
+                    type: string
+                    description: Składki na ubezpieczenie społeczne
+                    example: "1000.00"
+                  reductionAmountHealt:
+                    type: string
+                    description: Kwota zmniejszenia - połowa składki zdrowotnej
+                    example: "200.00"
+                  baseTax:
+                    type: string
+                    description: Podstawa opodatkowania
+                    example: "8300.00"
+                  reduceTaxPreviousMonth:
+                    type: string
+                    description: Zmniejszenie podatku z poprzedniego miesiąca
+                    example: "500.00"
+                  reduceTaxNextMonth:
+                    type: string
+                    description: Zmniejszenie podatku na następny miesiąc
+                    example: "300.00"
+                  transferHealt:
+                    type: string
+                    description: Składka zdrowotna do przekazania
+                    example: "400.00"
+                  amountFlatRateTax:
+                    type: string
+                    description: Obliczona kwota podatku ryczałtowego
+                    example: "415.00"
+                  details:
+                    type: object
+                    description: Szczegółowe wyliczenia podatku dla poszczególnych stawek
+                    properties:
+                      tax17:
+                        type: string
+                        description: Podatek dla stawki 17%
+                        example: "170.00"
+                      tax15:
+                        type: string
+                        description: Podatek dla stawki 15%
+                        example: "75.00"
+                      tax14:
+                        type: string
+                        description: Podatek dla stawki 14%
+                        example: "70.00"
+                      tax12_5:
+                        type: string
+                        description: Podatek dla stawki 12.5%
+                        example: "25.00"
+                      tax12:
+                        type: string
+                        description: Podatek dla stawki 12%
+                        example: "24.00"
+                      tax10:
+                        type: string
+                        description: Podatek dla stawki 10%
+                        example: "20.00"
+                      tax8_5:
+                        type: string
+                        description: Podatek dla stawki 8.5%
+                        example: "17.00"
+                      tax5_5:
+                        type: string
+                        description: Podatek dla stawki 5.5%
+                        example: "11.00"
+                      tax3:
+                        type: string
+                        description: Podatek dla stawki 3%
+                        example: "3.00"
+        '400':
+          description: Błąd podczas obliczania podatku
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Ogólny komunikat błędu
+                    example: "Wystąpił błąd podczas obliczania podatku ryczałtowego"
+                  details:
+                    type: string
+                    description: Szczegółowy opis błędu
+                    example: "Brak wymaganych parametrów month i year"
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    FlatRateTaxUpdate:
+      type: object
+      properties:
+        month:
+          type: integer
+          description: Miesiąc (1-12)
+          minimum: 1
+          maximum: 12
+        year:
+          type: integer
+          description: Rok
+        income:
+          type: number
+          format: decimal
+          description: Przychód
+        reductionAmountPreviousMonth:
+          type: number
+          format: decimal
+          description: Kwota zmniejszenia z poprzedniego miesiąca
+        socialInsurance:
+          type: number
+          format: decimal
+          description: Składki na ubezpieczenie społeczne
+        reductionAmountHealt:
+          type: number
+          format: decimal
+          description: Kwota zmniejszenia - składka zdrowotna
+        baseTax:
+          type: number
+          format: decimal
+          description: Podstawa opodatkowania
+        reduceTaxPreviousMonth:
+          type: number
+          format: decimal
+          description: Zmniejszenie podatku z poprzedniego miesiąca
+        reduceTaxNextMonth:
+          type: number
+          format: decimal
+          description: Zmniejszenie podatku na następny miesiąc
+        transferHealt:
+          type: number
+          format: decimal
+          description: Składka zdrowotna do przekazania
+        amountFlatRateTax:
+          type: number
+          format: decimal
+          description: Kwota podatku ryczałtowego
+        dataPayment:
+          type: string
+          format: date
+          description: Data płatności
+        isPaid:
+          type: boolean
+          description: Czy podatek został opłacony
+
+  responses:
+    Error400:
+      description: Błąd walidacji lub przetwarzania
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -18,6 +18,9 @@ require_once 'src/controlers/VatRegisterController.php';
 require_once 'src/controlers/VatPurchaseController.php';
 require_once 'src/controlers/InternalEvidenceController.php';
 require_once 'src/controlers/zus.php';
+require_once 'src/controlers/FlatRateTaxController.php';
+require_once 'src/controlers/TaxOfficeController.php';
+require_once 'src/controlers/NoteController.php';
 
 // Routing
 $path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);   
@@ -339,6 +342,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $path === '/api_ryczalt/zus/contr
     return;
 }
 
+// Pobieranie podatków ryczałtowych
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/flat-rate-tax') {
+    checkToken();
+    $controller = new FlatRateTaxController($db);
+    $controller->getFlatRateTax();
+    return;
+}
+
+// Dodawanie nowego podatku ryczałtowego
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $path === '/api_ryczalt/flat-rate-tax') {
+    checkToken();
+    $controller = new FlatRateTaxController($db);
+    $controller->createFlatRateTax();
+    return;
+}
+
+// Aktualizacja podatku ryczałtowego
+if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $path === '/api_ryczalt/flat-rate-tax') {
+    checkToken();
+    $controller = new FlatRateTaxController($db);
+    $controller->updateFlatRateTax();
+    return;
+}
+
+// Usuwanie podatku ryczałtowego
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $path === '/api_ryczalt/flat-rate-tax') {
+    checkToken();
+    $controller = new FlatRateTaxController($db);
+    $controller->deleteFlatRateTax();
+    return;
+}
+
+// Obliczanie podatku ryczałtowego
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/flat-rate-tax/calculate') {
+    checkToken();
+    $controller = new FlatRateTaxController($db);
+    $controller->calculateFlatRateTax();
+    return;
+}
+
+// Pobieranie listy urzędów skarbowych
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/tax-offices') {
+    checkToken();
+    $controller = new TaxOfficeController($db);
+    $controller->getTaxOffices();
+    return;
+}
+
+// Pobieranie uwag
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === '/api_ryczalt/notes') {
+    checkToken();
+    $controller = new NoteController($db);
+    $controller->getNotes();
+    return;
+}
+
+// Dodawanie nowej uwagi
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $path === '/api_ryczalt/notes') {
+    checkToken();
+    $controller = new NoteController($db);
+    $controller->addNote();
+    return;
+}
+
+// Aktualizacja uwagi
+if ($_SERVER['REQUEST_METHOD'] === 'PUT' && $path === '/api_ryczalt/notes') {
+    checkToken();
+    $controller = new NoteController($db);
+    $controller->updateNote();
+    return;
+}
+
+// Usuwanie uwagi
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE' && $path === '/api_ryczalt/notes') {
+    checkToken();
+    $controller = new NoteController($db);
+    $controller->deleteNote();
+    return;
+}
 
 function checkToken() {
     // Pobranie tokenu z nagłówków
