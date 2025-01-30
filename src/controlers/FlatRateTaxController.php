@@ -342,11 +342,12 @@ class FlatRateTaxController
             $totalTax = round($tax17 + $tax15 + $tax14 + $tax12_5 + $tax12 + $tax10 + $tax8_5 + $tax5_5 + $tax3);
 
             // Pobierz kwotę zmniejszenia z poprzedniego miesiąca
-            $prevMonthQuery = "SELECT reduceTaxNextMonth
+            $prevMonthQuery = "SELECT transferHealt
             FROM FlatRateTax 
             WHERE month = :prevMonth 
             AND year = :prevYear 
-            AND companyId = :companyId";
+            AND companyId = :companyId
+            AND isPaid = 1";
 
             $prevStmt = $this->db->prepare($prevMonthQuery);
             $prevStmt->execute([
@@ -356,7 +357,7 @@ class FlatRateTaxController
             ]);
 
             $prevMonthReduction = $prevStmt->fetch(PDO::FETCH_ASSOC);
-            $reduceTaxPreviousMonth = floatval($prevMonthReduction['reduceTaxNextMonth'] ?? 0);
+            $reduceTaxPreviousMonth = floatval($prevMonthReduction['transferHealt'] ?? 0);
 
             // Składki ZUS
             $socialInsurance = floatval($zusData['social'] ?? 0);
@@ -379,17 +380,17 @@ class FlatRateTaxController
                 'reduceTaxPreviousMonth' => number_format($reduceTaxPreviousMonth, 2, '.', ''),
                 'reduceTaxNextMonth' => number_format($reduceTaxNextMonth, 2, '.', ''),
                 'transferHealt' => number_format($healthContribution, 2, '.', ''),
-                'amountFlatRateTax' => number_format($totalTax, 2, '.', ''),
+                'amountFlatRateTax' => number_format($totalTax - $reduceTaxPreviousMonth, 2, '.', ''),
                 'details' => [
-                    'tax17' => number_format($tax17, 2, '.', ''),
-                    'tax15' => number_format($tax15, 2, '.', ''),
-                    'tax14' => number_format($tax14, 2, '.', ''),
-                    'tax12_5' => number_format($tax12_5, 2, '.', ''),
-                    'tax12' => number_format($tax12, 2, '.', ''),
-                    'tax10' => number_format($tax10, 2, '.', ''),
-                    'tax8_5' => number_format($tax8_5, 2, '.', ''),
-                    'tax5_5' => number_format($tax5_5, 2, '.', ''),
-                    'tax3' => number_format($tax3, 2, '.', '')
+                    'tax17' => number_format($incomes['income17'], 2, '.', ''),
+                    'tax15' => number_format($incomes['income15'], 2, '.', ''),
+                    'tax14' => number_format($incomes['income14'], 2, '.', ''),
+                    'tax12_5' => number_format($incomes['income12_5'], 2, '.', ''),
+                    'tax12' => number_format($incomes['income12'], 2, '.', ''),
+                    'tax10' => number_format($incomes['income10'], 2, '.', ''),
+                    'tax8_5' => number_format($incomes['income8_5'], 2, '.', ''),
+                    'tax5_5' => number_format($incomes['income5_5'], 2, '.', ''),
+                    'tax3' => number_format($incomes['income3'], 2, '.', '')
                 ]
             ]);
 
